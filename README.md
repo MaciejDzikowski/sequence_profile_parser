@@ -1,1 +1,1 @@
-"a spimple sequence profile parser; work in process" 
+"a simple sequence profile parser; work in process" 
