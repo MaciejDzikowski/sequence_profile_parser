@@ -1,14 +1,6 @@
 import argparse
 import copy
 
-parser = argparse.ArgumentParser(description="Reads .profile file and prints\
-                                              tuple with three elements:\
-                                              ([amino acids' symbols],\
-                                              [amino acids],\
-                                              [reversed matrix]).")
-parser.add_argument('-f', '--file', help='input .profile file', required=True)
-args = parser.parse_args()
-
 def opening(file):
     """opening the file"""
     rows = []  # creating a list of rows
@@ -78,4 +70,14 @@ def parse_sequence_profile(file):
     tuple3 = (t_symbols, t_aminoacids, t_match)
     return tuple3
 
-print(parse_sequence_profile(args.file))
+if __name__ == "__main__" :
+    parser = argparse.ArgumentParser(description="Reads .profile file and prints\
+                                                  tuple with three elements:\
+                                                  ([amino acids' symbols],\
+                                                  [amino acids],\
+                                                  [reversed matrix]).")
+    parser.add_argument('-f', '--file', help='input .profile file',
+                        required=True)
+    args = parser.parse_args()
+
+    print(parse_sequence_profile(args.file))
