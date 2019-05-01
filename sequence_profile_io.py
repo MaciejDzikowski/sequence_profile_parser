@@ -2,10 +2,10 @@ import argparse
 import copy
 
 def pref_order():
-    """preferd order of of amino acids' symbols"""
-    order = ['VAL', 'ALA', 'PRO', 'ILE', 'LEU', 'MET', 'GLU', 'ASP', 'ARG',
-             'LYS', 'THR', 'SER', 'HIS', 'CYS', 'GLN', 'ASN', 'PHE', 'TYR',
-             'TRP', 'GLY', 'UNK', 'GAP', 'GPE']
+    """preferd order of amino acids"""
+    order = ['HIS', 'ARG', 'LYS', 'GLU', 'ASP', 'GLN', 'ASN', 'SER', 'THR',
+             'TRP', 'TYR', 'PHE', 'LEU', 'ILE', 'VAL', 'MET', 'CYS', 'ALA',
+             'GLY', 'PRO', 'UNK', 'GAP', 'GPE']
     return order
 
 def opening(file):
@@ -16,14 +16,14 @@ def opening(file):
         rows.append(row)
     return rows
 
-def symbols(rows):
-    """creating a list of amino acids' symbols"""
+def file_order(rows):
+    """creating a list of amino acids' order"""
     names = rows[0][:]
     del names[0:2]  # deleting '#id' and 'aa'
     return names
 
-def aminoacids(rows):
-    """creating a list of amino acids"""
+def sequence(rows):
+    """creating a list of amino acids in sequence"""
     aa = [row[1] for row in rows]
     del aa[0]  # deleting 'aa'
     return aa
@@ -43,32 +43,37 @@ def r_matrix(rows):
         r_mat.append([rows[j][i] for j in range(1, len(rows))])
     return convert(r_mat)
 
-def match(input_sym, rmatrix):
+def match(file_order, rmatrix, new_order):
     """matching the matrix to prefered order of amino acids' symbols"""
-    eg_symbols = pref_order()
-    sym = copy.deepcopy(input_sym)
+    eg_symbols = new_order
+    f_o = copy.deepcopy(file_order)
 
-    if sym == eg_symbols:
+    if f_o == eg_symbols:
         return rmatrix
     else:
         r_m = copy.deepcopy(rmatrix)
         new_matrix = []
-        for symbol in sym:
+        for symbol in f_o:
             new_matrix.append(r_m[eg_symbols.index(symbol)])
         return new_matrix
 
-def parse_sequence_profile(file):
+def parse_sequence_profile(file, new_order=False):
     """returning a tuple:
-    ([amino acids' symbols], [amino acids], [reversed matrix])
+    ([order], [sequence], [reversed matrix])
     """
+    if new_order:
+        t_pref_order = new_order
+    else:
+        t_pref_order = pref_order()
     t_rows = opening(file)
-    t_pref_order = pref_order()
-    t_symbols = symbols(t_rows)
-    t_aminoacids = aminoacids(t_rows)
+    t_file_order = file_order(t_rows)
+    t_sequence = sequence(t_rows)
     t_rmatrix = r_matrix(t_rows)
-    t_match = match(t_symbols, t_rmatrix)
-    tuple3 = (t_pref_order, t_aminoacids, t_match)
+    t_match = match(t_file_order, t_rmatrix, t_pref_order)
+    tuple3 = (t_pref_order, t_sequence, t_match)
     return tuple3
+
+
 
 if __name__ == "__main__" :
     parser = argparse.ArgumentParser(description="Reads .profile file, prints\
@@ -76,8 +81,11 @@ if __name__ == "__main__" :
                                                   ([amino acids' symbols],\
                                                   [amino acids],\
                                                   [reversed matrix]).")
-    parser.add_argument('-f', '--file', help='input .profile file',
+    parser.add_argument("-f", "--file", help="input .profile file",
                         required=True)
+    parser.add_argument("-o", "--order",
+                        help="input a list of amino acids' order",
+                        required=False)
     args = parser.parse_args()
 
-    print(parse_sequence_profile(args.file))
+    print(parse_sequence_profile(args.file, args.order))
