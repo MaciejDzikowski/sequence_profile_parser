@@ -14,5 +14,5 @@ Main components:
 
 
 What is necessary to use it?
-- visualife ('visualife.readthedocs.io')
-- brython ('brython.info')
+- visualife ('https://visualife.readthedocs.io/')
+- brython ('https://brython.info/')
