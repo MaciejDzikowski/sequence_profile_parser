@@ -56,6 +56,9 @@
     from core.styles import color_by_name, colormap_by_name
     from core.svg_elements import Text, SquaresGroup
 
+    document['instruction'].innerHTML = 'Drop *.profile file onto the area \
+                                         below:'
+
 
     def handle_file_dragged_over(evt):
         """
@@ -68,9 +71,10 @@
 
     def show_loader():
         """
-        shows loader
+        shows loaders
         """
-        document["loader"].style.display= "block"
+        document["loader"].style.display = "block"
+        document["loader2"].style.display = "block"
 
 
     def load_file():
@@ -82,11 +86,13 @@
             order, sequence, matrix = spi.parse_sequence_profile_text(text)
 
             drawing = SvgViewport('',
-                                   0,
-                                   0,
-                                   24 * len(sequence) - 4 + 55 + 50,
-                                   # width + space for amino acids' shortcuts + margin
-                                   24 * len(order) + 20)  # height + space for sequence
+                                  0,
+                                  0,
+                                  24 * len(sequence) - 4 + 55 + 50,
+                                  # width + space for amino acids' shortcuts
+                                  # + margin
+                                  24 * len(order) + 20)
+                                  # height + space for sequence
 
             cmap = colormap_by_name("magma", 0.0, 1.0)
 
@@ -133,12 +139,79 @@
 
             # deleting the instruction and the loader
             document['instruction'].innerHTML = ''
-            document["loader"].style.display="none"
+            document["loader"].style.display = "none"
 
             # displaying a svg
             document['svg'].innerHTML = drawing.innerHTML
             document['svg'].style['width'] = '%dpx' % (24 * len(sequence))
             document['svg'].style['height'] = '548px'
+
+            # creating an interactive sequence string
+            num_full = int(len(sequence) / 58)
+            seq_box = SvgViewport('',
+                                  0,
+                                  0,
+                                  20 * 58,
+                                  25 * (num_full + 1) + 20)
+
+            # drawing a sequence and boxes
+            x_data = []
+            y_data = []
+            colors = []
+            for i in range(num_full):
+                for j in range(58):
+                    x_data.append(20 * j + 11)
+                    y_data.append(25 * i + 22)
+                    colors.append('white')
+            for i in range(len(sequence) - num_full * 58):
+                x_data.append(20 * i + 11)
+                y_data.append(25 * num_full + 22)
+                colors.append('white')
+            gid = 'squaresgroup2'
+            r = SquaresGroup(gid, x_data, y_data, colors, a=18)
+            r.stroke = 'Grey'
+            seq_box.draw(r)
+
+            for i in range(num_full):
+                for j in range(58):
+                    text = Text(str(sequence[58 * i + j]))
+                    text.x = 20 * j + 10 + 1
+                    text.y = 25 * i + 27
+                    color = color_by_name("Black")
+                    stroke = color_by_name("Black").create_darker(0.3)
+                    text.fill = color
+                    text.stroke = stroke
+                    text.stroke_width = 0.3
+                    text.font_size = 16
+                    seq_box.draw(text)
+
+            for i in range(num_full * 58, len(sequence)):
+                text = Text(str(sequence[i]))
+                text.x = 20 * (i - num_full * 58) + 10 + 1
+                text.y = 25 * num_full + 27
+                color = color_by_name("Black")
+                stroke = color_by_name("Black").create_darker(0.3)
+                text.fill = color
+                text.stroke = stroke
+                text.stroke_width = 0.3
+                text.font_size = 16
+                seq_box.draw(text)
+
+            seq_box.close()
+
+            # deleting the loader2
+            document["loader2"].style.display = "none"
+
+            # displaying a sequence svg
+            document['seq'].innerHTML = seq_box.innerHTML
+            document['seq'].style['width'] = '%dpx' % (20 * 58 + 20)
+            document['seq'].style['height'] = '%dpx' % (25 * num_full + 1)
+
+            # preparing a list of svg's elements (squares)
+            elements = document['seq'].select('text')
+            for i in range(len(elements)):
+                elements[i].id = str(i)
+                elements[i].bind("click", clicker)
 
             # creating a list of tooltip's messages
             global messages
@@ -156,18 +229,23 @@
                 elements[i].bind("mouseover", point_tooltip)
 
             return text
+
         except:
-            # deplying an error and deleting the loader
+            # deploying an error and deleting the loader
             document['instruction'].innerHTML = 'Wrong file format!'
-            document["loader"].style.display="none"
+            document["loader"].style.display =  "none"
+            document["loader2"].style.display = "none"
             print('Wrong file format!')
+
+
+    def clicker(ev):
+        print('elo')
 
 
     def point_tooltip(ev):
         """
         preparing an adequate message
         """
-        print('totltek')
         document["tooltip"].style.display = "inline"
         c = ev.target
         id = ev.target.id
@@ -205,7 +283,7 @@
 <div class="center"><h1>Sequence profile parser</h1></div>
 
 <div>
-    <div id="instruction">Drop *.profile file onto the area below:</div>
+    <div id="instruction">Loading...</div>
 
     <div style="width: 150px; height: auto; margin-left: auto;
             margin-right: auto; border: 1px solid #ccc;">
@@ -218,6 +296,13 @@
             <div id="loader" class="loader"></div>
             <svg id="svg" style="margin: 10px; height: auto"></svg>
         </div>
+    </div>
+
+    <div style="width: 1200px; height: auto; margin-left: auto;
+            margin-right: auto; border: 1px solid #ccc;">
+        <div id="loader2" class="loader"></div>
+
+        <svg id="seq" style="margin: 10px; height: auto;"></svg>
     </div>
 </div>
 
