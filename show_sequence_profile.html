@@ -8,6 +8,12 @@
     <script src="brython.js"></script>
     <style>
 
+        #grad {
+            background-color: darkseagreen;
+            background-image: linear-gradient(to right, seagreen,
+                darkseagreen);
+        }
+
         .center {
             text-align: center;
             display: block;
@@ -44,11 +50,12 @@
     </style>
 </head>
 
-<body onload="brython()">
+<body onload="brython()" id="grad">
 
 <script type="text/python">
     import sys
     import sequence_profile_io as spi
+    import javascript
     from browser import document, html, window
 
     sys.path.append('/core')
@@ -143,15 +150,16 @@
 
             # displaying a svg
             document['svg'].innerHTML = drawing.innerHTML
-            document['svg'].style['width'] = '%dpx' % (24 * len(sequence))
-            document['svg'].style['height'] = '548px'
+            document['svg'].style['width'] = '%dpx' % (24 * len(sequence)
+                                                       - 4 + 55 + 50)
+            document['svg'].style['height'] = '%dpx' % (24 * len(order) + 20)
 
             # creating an interactive sequence string
             num_full = int(len(sequence) / 58)
             seq_box = SvgViewport('',
                                   0,
                                   0,
-                                  20 * 58,
+                                  20 * 58 + 20,
                                   25 * (num_full + 1) + 20)
 
             # drawing a sequence and boxes
@@ -162,14 +170,20 @@
                 for j in range(58):
                     x_data.append(20 * j + 11)
                     y_data.append(25 * i + 22)
-                    colors.append('white')
+                    if (i + j) % 2 == 0:
+                        colors.append('beige')
+                    else:
+                        colors.append('palegoldenrod')
             for i in range(len(sequence) - num_full * 58):
                 x_data.append(20 * i + 11)
                 y_data.append(25 * num_full + 22)
-                colors.append('white')
+                if (num_full + i) % 2 == 0:
+                    colors.append('beige')
+                else:
+                    colors.append('palegoldenrod')
             gid = 'squaresgroup2'
             r = SquaresGroup(gid, x_data, y_data, colors, a=18)
-            r.stroke = 'Grey'
+            r.stroke = 'grey'
             seq_box.draw(r)
 
             for i in range(num_full):
@@ -201,13 +215,15 @@
 
             # deleting the loader2
             document["loader2"].style.display = "none"
+            document["box_instr"].innerHTML = 'Click to choose:'
 
             # displaying a sequence svg
             document['seq'].innerHTML = seq_box.innerHTML
             document['seq'].style['width'] = '%dpx' % (20 * 58 + 20)
-            document['seq'].style['height'] = '%dpx' % (25 * num_full + 1)
+            document['seq'].style['height'] = '%dpx' % (25 * (num_full + 1)
+                                                        + 20)
 
-            # preparing a list of svg's elements (squares)
+            # preparing a list of svg's elements (symbols)
             elements = document['seq'].select('text')
             for i in range(len(elements)):
                 elements[i].id = str(i)
@@ -232,14 +248,15 @@
 
         except:
             # deploying an error and deleting the loader
-            document['instruction'].innerHTML = 'Wrong file format!'
+            document["instruction"].innerHTML = 'Wrong file format!'
             document["loader"].style.display =  "none"
             document["loader2"].style.display = "none"
             print('Wrong file format!')
 
 
     def clicker(ev):
-        print('elo')
+        hop = str(53 + int(ev.target.id) * 24)
+        document["slider"].scrollLeft = hop
 
 
     def point_tooltip(ev):
@@ -286,12 +303,13 @@
     <div id="instruction">Loading...</div>
 
     <div style="width: 150px; height: auto; margin-left: auto;
-            margin-right: auto; border: 1px solid #ccc;">
+            margin-right: auto;">
         <div id="tooltip" class="tooltip"></div>
     </div>
 
-    <div style="width: 1200px; height: auto; overflow: scroll;
-            margin-left: auto; margin-right: auto; border: 1px solid #ccc;">
+    <div id="slider" style="width: 1200px; height: auto; overflow: scroll;
+            margin-left: auto; margin-right: auto; border: 1px solid black;
+            background-color: mintcream">
         <div id="view">
             <div id="loader" class="loader"></div>
             <svg id="svg" style="margin: 10px; height: auto"></svg>
@@ -299,9 +317,9 @@
     </div>
 
     <div style="width: 1200px; height: auto; margin-left: auto;
-            margin-right: auto; border: 1px solid #ccc;">
+            margin-right: auto;">
         <div id="loader2" class="loader"></div>
-
+        <div id="box_instr"></div>
         <svg id="seq" style="margin: 10px; height: auto;"></svg>
     </div>
 </div>
